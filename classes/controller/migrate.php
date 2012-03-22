@@ -9,19 +9,22 @@ class Controller_Migrate extends Controller {
 	public function before()
 	{
 		parent::before();
+
 		if ( ! Kohana::$is_cli)
 		{
 			throw new Kohana_Exception("CLI Access Only");
 		}
+
 		$this->runner = new Migration_Manager(Kohana::$config->load('migration'));
 
-		print "\n=============[ K3-Migrate ]============\n\n";
+		$this->echo_padded_string('K3-Migrate');
 	}
 
 	public function after()
 	{
 		parent::after();
-		print "\n=======================================\n\n";
+
+		$this->echo_padded_string('');
 	}
 
 	public function action_index()
@@ -130,5 +133,44 @@ class Controller_Migrate extends Controller {
 		}
 		$file_name = $this->runner->create($class_name);
 		print "Created migration `$class_name` in file `".$file_name."`\n";
+	}
+
+	protected function echo_padded_string($string, $level = 1)
+	{
+		$levels = array(
+			1 => array(
+				'line' => array(
+					'pre' => "\n",
+					'post' => "\n\n",
+				),
+				'string' => array(
+					'pre' => '[ ',
+					'post' => ' ]',
+				)
+			),
+			'default' => array(
+				'width' => 40,
+				'pad' => '=',
+				'line' => array(
+					'pre' => '',
+					'post' => "\n",
+				),
+				'string' => array(
+					'pre' => '',
+					'post' => '',
+				)
+			),
+		);
+
+		$options = array_merge($levels['default'], $levels[$level]);
+
+		if ($string)
+		{
+			$string = $options['string']['pre'] . $string . $options['string']['post'];
+		}
+
+		echo $options['line']['pre']
+			. str_pad($string, $options['width'], $options['pad'], STR_PAD_BOTH)
+			. $options['line']['post'];
 	}
 }
