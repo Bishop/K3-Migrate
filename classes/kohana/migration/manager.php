@@ -7,23 +7,23 @@ class Kohana_Migration_Manager {
 	protected $config = null;
 	protected $database = null;
 
+	/**
+	 * @var Database
+	 */
+	protected $_db = null;
+
+	protected $_migrations = array();
+
+
 	public function __construct($config)
 	{
-		if ( ! is_dir($config->path))
-		{
-			throw new Kohana_Exception("Invalid Migrations Path: {$config->path}");
-		}
+		$this->_db = Database::instance();
+
+		$this->check_schema_table();
 
 		$this->config = $config;
 
-		if (($database = getenv('ENVIRONMENT')) !== false)
-		{
-			$this->database = $database;
-		}
-		else
-		{
-			$this->database = $this->config->database;
-		}
+		$this->database = $this->config->database;
 	}
 
 	public function enumerateMigrations()
@@ -252,6 +252,18 @@ END;
 	{
 		$split = explode('_', $migration_name);
 		return intval($split[0]);
+	}
+
+	protected function check_schema_table()
+	{
+		try
+		{
+			$migrations = ORM::factory('Migration')->find_all();
+		}
+		catch (Database_Exception $e)
+		{
+			echo $e;
+		}
 	}
 }
 
